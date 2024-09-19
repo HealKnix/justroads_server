@@ -38,6 +38,7 @@ from justroads.serializers import (
     DefectStatusSerializer,
     MarkSerializer,
     TokenSerializer,
+    MarkAnnotationSerializer,
 )
 from justroads_server.settings import BASE_DIR
 
@@ -131,23 +132,41 @@ class LogoutViewSet(APIView):
 class DefectViewSet(viewsets.ModelViewSet):
     queryset = Defect.objects.all()
     serializer_class = DefectSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post']
 
 
 @extend_schema_view(**MarkAnnotationDocumentation())
 class MarkAnnotationViewSet(viewsets.ModelViewSet):
     queryset = MarkAnnotation.objects.all()
-    serializer_class = MarkSerializer
-    permission_classes = [IsAuthenticated]
+    serializer_class = MarkAnnotationSerializer
+    # permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch']
+
+    def list(self, request, *args, **kwargs):
+        query_mark_id = self.request.query_params.get("mark_id")
+
+        if query_mark_id is not None:
+            queryset = MarkAnnotation.objects.filter(mark_id=query_mark_id)
+            serializer = MarkAnnotationSerializer(queryset, many=True)
+            return Response(serializer.data)
+
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 @extend_schema_view(**DefectStatusDocumentation())
 class DefectStatusViewSet(viewsets.ModelViewSet):
     queryset = DefectStatus.objects.all()
     serializer_class = DefectStatusSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post']
 
 
@@ -155,7 +174,7 @@ class DefectStatusViewSet(viewsets.ModelViewSet):
 class MarkViewSet(viewsets.ModelViewSet):
     queryset = Mark.objects.all()
     serializer_class = MarkSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post']
 
     def create(self, request, *args, **kwargs):
@@ -176,7 +195,7 @@ class MarkViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
 
         # Загрузка обученной модели
-        model = YOLO(f"{BASE_DIR}/ai/best.pt")
+        model = YOLO(f"{BASE_DIR}/model/best.pt")
 
         # Выполнение детекции на изображении
         image = serializer.data["image"].split("/")[-1]
@@ -184,6 +203,11 @@ class MarkViewSet(viewsets.ModelViewSet):
 
         results = model(path_to_valid_data)
 
-        results[0].save(f"media/images/{image}")
+        for i in range(len(results[0].__dict__["boxes"])):
+            defect_class = int(results[0].__dict__["boxes"][0].cls.item()) + 1
+            MarkAnnotation.objects.create(
+                mark_id=Mark.objects.get(id=serializer.data["id"]),
+                defect_id=Defect.objects.get(id=defect_class),
+            )
 
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)

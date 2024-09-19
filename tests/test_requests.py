@@ -4,17 +4,6 @@ import requests
 
 session = requests.Session()
 
-auth_user = requests.post(
-    "http://localhost:8000/login/",
-    json={
-        "email": "www.test@gmail.com",
-        "password": "test",
-    },
-).json()
-
-print(auth_user)
-headers = {"Authorization": f"Token {auth_user['token']}"}
-
 # Границы России по широте и долготе
 MIN_LAT, MAX_LAT = 41.0, 81.0
 MIN_LON, MAX_LON = 19.0, 169.0
@@ -39,7 +28,6 @@ def update_coordinates():
                 "longitude": longitude,
             },
             files={"image": open(f"images/{i}.jpg", "rb")},
-            headers=headers,
         )
 
         print(f"Updated image {i} with latitude {latitude} and longitude {longitude}")

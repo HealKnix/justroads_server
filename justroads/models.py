@@ -102,7 +102,7 @@ class Mark(models.Model):
 class MarkAnnotation(models.Model):
     mark_id = models.ForeignKey(Mark, on_delete=models.CASCADE, db_column="mark_id")
     defect_id = models.ForeignKey(Defect, on_delete=models.CASCADE, db_column="defect_id")
-    defect_status = models.ForeignKey(DefectStatus, on_delete=models.CASCADE, db_column="defect_status")
+    defect_status = models.ForeignKey(DefectStatus, on_delete=models.CASCADE, db_column="defect_status", default=1)
 
     class Meta:
         db_table = "mark_annotation"

@@ -94,7 +94,16 @@ class MarkAnnotationDocumentation:
         return {
             'list': extend_schema(
                 tags=[tag],
-                description="Получить список всех аннотаций метки"
+                description="Получить список всех аннотаций метки",
+                parameters=[
+                    OpenApiParameter(
+                        name='mark_id',
+                        description='Идентификатор метки',
+                        required=False,
+                        type=int,
+                        location=OpenApiParameter.QUERY,
+                    )
+                ],
             ),
             'retrieve': extend_schema(
                 tags=[tag],
