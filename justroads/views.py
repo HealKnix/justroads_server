@@ -194,11 +194,12 @@ class MarkViewSet(viewsets.ModelViewSet):
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
 
+        image = serializer.data["image"].split("/")[-1]
+
         # Загрузка обученной модели
         model = YOLO(f"{BASE_DIR}/model/best.pt")
 
         # Выполнение детекции на изображении
-        image = serializer.data["image"].split("/")[-1]
         path_to_valid_data = f"{BASE_DIR}/media/images/{image}"
 
         results = model(path_to_valid_data)
@@ -209,5 +210,7 @@ class MarkViewSet(viewsets.ModelViewSet):
                 mark_id=Mark.objects.get(id=serializer.data["id"]),
                 defect_id=Defect.objects.get(id=defect_class),
             )
+
+        results[0].save(path_to_valid_data)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)

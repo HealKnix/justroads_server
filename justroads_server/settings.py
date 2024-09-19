@@ -29,8 +29,8 @@ SECRET_KEY = 'django-insecure-k$nu^zo7=1tx9r&o1jv=bm3z2x#3_@4+bn*u1@+(j=wgngp9yc
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
-CSRF_TRUSTED_ORIGINS = ['http://localhost:3000']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
+CSRF_TRUSTED_ORIGINS = ['http://localhost:3000', 'https://localhost:3000']
 
 # Application definition
 
@@ -78,7 +78,7 @@ MIDDLEWARE = [
 # CORS
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
+    "http://localhost:3000", "https://localhost:3000",
 ]
 CORS_ALLOW_METHODS = [
     'DELETE',
@@ -89,6 +89,7 @@ CORS_ALLOW_METHODS = [
     'PUT',
 ]
 CORS_ALLOW_HEADERS = [
+    "ngrok-skip-browser-warning",
     'accept',
     'accept-encoding',
     'authorization',
