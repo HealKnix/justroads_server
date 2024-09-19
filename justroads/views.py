@@ -1,3 +1,4 @@
+import os
 import random
 
 from django.contrib.auth import (
@@ -203,6 +204,14 @@ class MarkViewSet(viewsets.ModelViewSet):
         path_to_valid_data = f"{BASE_DIR}/media/images/{image}"
 
         results = model(path_to_valid_data)
+
+        if not results[0].__dict__["boxes"]:
+            invalid_mark = Mark.objects.get(id=serializer.data["id"])
+            invalid_mark.delete()
+            os.remove(f"{BASE_DIR}/media/images/{image}")
+            return Response({
+                "error": "No defects detected"
+            }, status=status.HTTP_406_NOT_ACCEPTABLE)
 
         for i in range(len(results[0].__dict__["boxes"])):
             defect_class = int(results[0].__dict__["boxes"][0].cls.item()) + 1
